@@ -1,0 +1,125 @@
+syntax = "proto3";
+package user;
+
+import "google/protobuf/any.proto";
+
+// --------------------------------------------- User ------------------------------- //
+
+enum Role {
+    USER = 0;
+    ADMIN = 1;
+}
+
+message UserRes {
+    int32 id = 1;
+    string username = 2;
+    string email = 3;
+    string password = 4;
+    Role role = 5;
+}
+    
+message IdOrEmail {
+    string idOrEmail = 1;
+}
+
+message JwtPayload {
+    int32 id = 1;
+    string username = 2;
+    string email = 3;
+    string role = 4;
+}
+
+message DeleteId {
+    int32 id = 1;
+}
+
+message DeleteReq {
+    DeleteId DeleteId = 1;
+    JwtPayload JwtPayload = 2;
+}
+
+service UserController {
+    rpc findOneUser(IdOrEmail) returns (UserRes) {}
+    rpc deleteUser(DeleteReq) returns (DeleteId) {}
+}
+
+// ----------------------------------- Auth -------------------------------------- //
+message Response {
+    google.protobuf.Any data = 1;
+    map<string, google.protobuf.Any> metadata = 2;
+}
+
+message Agent {
+    string agent = 1;
+}
+
+message Token {
+    string token = 1;
+    string exp = 2;
+    int32 userId = 3;
+    string userAgent = 4;
+}
+
+message Tokens {
+    string accessToken = 1;
+    Token refreshToken = 2;
+}
+
+// ---------------------------- Register --------------------------- //
+message RegisterDTO {
+    string username = 1;
+    string email = 2;
+    string password = 3;
+    string passwordRepeat = 4;
+}
+
+message RegisterRes {
+    int32 id = 1;
+    string username = 2;
+    string email = 3;
+    string password = 4;
+    Role role = 5;
+}
+
+message LoginDTO {
+    string email = 1;
+    string password = 2;
+}
+
+message RefreshToken {
+    string refreshToken = 1;
+}
+
+message RefreshTokenReq {
+    string refreshToken = 1;
+    Response res = 2;
+    Agent agent = 3;
+}
+
+message RegisterReq {
+    RegisterDTO dto = 1;
+}
+
+message LoginReq {
+    LoginDTO dto = 1;
+    string cookie = 2;
+    string agent = 3;
+}
+
+message LogoutReq {
+    RefreshToken refreshToken = 1;
+    Response res = 2;
+}
+
+message RefreshTokenRes {
+    RefreshToken refreshToken = 1;
+    Response res = 2;
+    Agent agent = 3;
+}
+
+service AuthController {
+    rpc register (RegisterReq) returns (RegisterRes);
+    rpc login (LoginReq) returns (Tokens);
+    rpc logout (LogoutReq) returns (Response);
+    rpc refreshToken(RefreshTokenReq) returns (Response);
+}
